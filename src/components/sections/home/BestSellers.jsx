@@ -1,29 +1,39 @@
 import React, { useState } from "react";
 import { Star, ShoppingBag, Heart } from "lucide-react";
+import { Link } from "react-router-dom";
 import { products } from "../../../data/data";
 
 const BestSellers = () => {
   const [wishlist, setWishlist] = useState([]);
-  const [AddToCart, setAddToCart] = useState([]);
+  const [cart, setCart] = useState([]);
 
-// Adding to cart function
+  // Adding to cart function
+  const handleAddToCart = (productId, e) => {
+    e.preventDefault(); // Prevent Link navigation when clicking button
+    e.stopPropagation();
+    
+    const product = products.find(p => p.id === productId);
+    if (product) {
+      setCart(prev => [...prev, product]);
+      console.log(`${product.name} added to cart successfully`);
+      
+      // Optional: Show a toast notification here
+      // toast.success(`${product.name} added to cart!`);
+    }
+  };
 
-const handleAddToCart = (productId) => {
-  const product = products.find(p => p.id === productId);
-
-  if (product) {
-    setAddToCart(prev => [...prev, product]);
-    console.log(`${product.name} added successfully`);
-  }
-};
-
-
-  const toggleWishlist = (productId) => {
+  const toggleWishlist = (productId, e) => {
+    e.preventDefault(); // Prevent Link navigation when clicking button
+    e.stopPropagation();
+    
     setWishlist(prev => 
       prev.includes(productId) 
         ? prev.filter(id => id !== productId)
         : [...prev, productId]
     );
+    
+    const product = products.find(p => p.id === productId);
+    console.log(`${product.name} ${wishlist.includes(productId) ? 'removed from' : 'added to'} wishlist`);
   };
 
   const renderStars = (rating) => {
@@ -59,8 +69,9 @@ const handleAddToCart = (productId) => {
         {/* Product grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
           {products.map((product) => (
-            <div
+            <Link
               key={product.id}
+              to={`/product/${product.id}`}
               className="group relative bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
             >
               {/* Product image container */}
@@ -80,8 +91,8 @@ const handleAddToCart = (productId) => {
                 
                 {/* Wishlist button */}
                 <button
-                  onClick={() => toggleWishlist(product.id)}
-                  className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-md hover:bg-white transition-colors"
+                  onClick={(e) => toggleWishlist(product.id, e)}
+                  className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-md hover:bg-white transition-colors z-10"
                   aria-label="Add to wishlist"
                 >
                   <Heart
@@ -95,9 +106,9 @@ const handleAddToCart = (productId) => {
                 </button>
 
                 {/* Quick color options */}
-                {product.colors && (
+                {product.colors && product.colors.length > 0 && (
                   <div className="absolute bottom-3 left-3 flex gap-1">
-                    {product.colors.map((color, index) => (
+                    {product.colors.slice(0, 3).map((color, index) => (
                       <div
                         key={index}
                         className="w-5 h-5 rounded-full border-2 border-white shadow-sm"
@@ -105,6 +116,11 @@ const handleAddToCart = (productId) => {
                         title="Color option"
                       />
                     ))}
+                    {product.colors.length > 3 && (
+                      <div className="w-5 h-5 rounded-full bg-gray-800 border-2 border-white shadow-sm flex items-center justify-center">
+                        <span className="text-white text-[8px] font-bold">+{product.colors.length - 3}</span>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -115,8 +131,8 @@ const handleAddToCart = (productId) => {
                 <div className="text-xs text-gray-500 mb-1">{product.brand}</div>
                 
                 {/* Product name */}
-                <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2 hover:text-red-600 transition-colors">
-                  <a href={`/product/${product.id}`}>{product.name}</a>
+                <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2 group-hover:text-red-600 transition-colors">
+                  {product.name}
                 </h3>
 
                 {/* Rating */}
@@ -147,9 +163,9 @@ const handleAddToCart = (productId) => {
                 </div>
 
                 {/* Add to cart button */}
-                <button className="w-full bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-lg font-medium transition-all duration-300 flex items-center justify-center gap-2 group/btn shadow-md hover:shadow-lg"
-                
-                 onClick={() => handleAddToCart(product.id)}
+                <button
+                  onClick={(e) => handleAddToCart(product.id, e)}
+                  className="w-full bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-lg font-medium transition-all duration-300 flex items-center justify-center gap-2 group/btn shadow-md hover:shadow-lg"
                 >
                   <ShoppingBag size={18} />
                   <span>Add to Cart</span>
@@ -158,14 +174,14 @@ const handleAddToCart = (productId) => {
 
               {/* Hover gradient border effect */}
               <div className="absolute inset-x-0 bottom-0 h-0.5 bg-gradient-to-r from-red-500 to-pink-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"></div>
-            </div>
+            </Link>
           ))}
         </div>
 
         {/* View all link */}
         <div className="text-center mt-12">
-          <a
-            href="/best-sellers"
+          <Link
+            to="/best-sellers"
             className="inline-flex items-center gap-2 text-red-600 font-medium hover:text-red-700 group"
           >
             <span>View All Best Sellers</span>
@@ -177,7 +193,7 @@ const handleAddToCart = (productId) => {
             >
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
             </svg>
-          </a>
+          </Link>
         </div>
       </div>
     </section>

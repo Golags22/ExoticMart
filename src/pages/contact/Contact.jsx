@@ -1,8 +1,14 @@
 import React from 'react'
+import { ContactForm, ContactHero, ContactInfo, MapSection } from '../../components/sections/contact'
 
 const Contact = () => {
   return (
-    <div>Contact</div>
+    <>
+    <ContactHero />
+    <ContactForm />
+<MapSection />
+
+    </>
   )
 }
 
