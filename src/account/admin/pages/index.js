@@ -1,8 +1,9 @@
 
 import AdminDashboard from './AdminDashboard';
 import AdminProducts from './AdminProducts';
-import AdminOrder from './AdminOrders';
+import AdminOrders from './AdminOrders';
+import AdminSidebar from './Adminsidebar/AdminSidebar';
 
 export{
-    AdminDashboard,AdminProducts,AdminOrder
+    AdminDashboard,AdminProducts,AdminOrders,AdminSidebar
 }

@@ -14,7 +14,7 @@ import {
   Watch
 } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
-import { products, categories } from "../routes/routes";
+// import { products, categories } from "../routes/routes";
 
 export default function CategoryPage() {
   const { categoryId, subcategoryId } = useParams();

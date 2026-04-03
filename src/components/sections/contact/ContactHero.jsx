@@ -52,7 +52,7 @@ export default function ContactHero() {
                 className="inline-flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-medium transition-all duration-300 shadow-lg hover:shadow-xl group"
               >
                 <Mail size={18} className="group-hover:scale-110 transition-transform" />
-                support@exoticmart.com
+                info@exoticmart.dk
               </a>
               <a
                 href="tel:+2349034829264"

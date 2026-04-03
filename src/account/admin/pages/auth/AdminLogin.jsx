@@ -1,11 +1,11 @@
 // account/admin/AdminLogin.jsx
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { 
-  Mail, 
-  Lock, 
-  Eye, 
-  EyeOff, 
+import {
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
   LogIn,
   Shield,
   ArrowLeft
@@ -14,10 +14,9 @@ import { useAuth } from "../../../../context/AuthContext";
 import { toast } from "react-toastify";
 
 export default function AdminLogin() {
-  // ✅ All hooks called at the top level - NEVER inside functions
-  const { login, userProfile } = useAuth(); // Get userProfile here
+  const { login } = useAuth(); // ✅ only login needed now
   const navigate = useNavigate();
-  
+
   const [formData, setFormData] = useState({
     email: "",
     password: ""
@@ -37,18 +36,19 @@ export default function AdminLogin() {
     setLoading(true);
 
     try {
-      const user = await login(formData.email, formData.password);
-      
-      // ✅ Now we can use userProfile from the top level
-      // The profile is already available from the hook above
-      if (userProfile?.role !== "admin") {
+      // ✅ login now returns profile directly
+      const profile = await login(formData.email, formData.password);
+console.log("LOGIN PROFILE:", profile);
+      // ✅ check role from returned profile (NO async issues)
+      if (!profile || profile.role !== "admin") {
         toast.error("Access denied. Admin privileges required.");
         setLoading(false);
         return;
       }
 
       toast.success("Welcome back, Admin!");
-      navigate("/admin");
+      navigate("/admin/dashboard");
+
     } catch (error) {
       console.error("Login error:", error);
       toast.error(error.message || "Login failed");
@@ -87,7 +87,10 @@ export default function AdminLogin() {
                 Email Address
               </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                <Mail
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                  size={18}
+                />
                 <input
                   type="email"
                   name="email"
@@ -106,7 +109,10 @@ export default function AdminLogin() {
                 Password
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                <Lock
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                  size={18}
+                />
                 <input
                   type={showPassword ? "text" : "password"}
                   name="password"

@@ -27,9 +27,9 @@ export default function Profile() {
   
   // Profile form state
   const [profileForm, setProfileForm] = useState({
-    displayName: userProfile?.displayName || "",
+    fullName: userProfile?.fullName || "",
     email: user?.email || "",
-    phone: userProfile?.phone || "",
+    phoneNumber: userProfile?.phoneNumber || "",
     newsletter: userProfile?.newsletter || false
   });
 
@@ -98,8 +98,8 @@ export default function Profile() {
     
     try {
       await updateUserProfile({
-        displayName: profileForm.displayName,
-        phone: profileForm.phone,
+        fullName: profileForm.fullName,
+        phoneNumber: profileForm.phoneNumber,
         newsletter: profileForm.newsletter
       });
       toast.success("Profile updated successfully!");
@@ -188,7 +188,7 @@ export default function Profile() {
 
   // Redirect if not logged in
   if (!user) {
-    navigate("/users/login", { state: { from: "/account/profile" } });
+    navigate("/login", { state: { from: "/account/profile" } });
     return null;
   }
 
@@ -219,7 +219,7 @@ export default function Profile() {
                     <Camera size={14} className="text-gray-600" />
                   </button>
                 </div>
-                <h3 className="font-semibold text-gray-900">{userProfile?.displayName || "User"}</h3>
+                <h3 className="font-semibold text-gray-900">{userProfile?.fullName || "User"}</h3>
                 <p className="text-sm text-gray-500">{user?.email}</p>
               </div>
 
@@ -293,7 +293,7 @@ export default function Profile() {
                       type="text"
                       id="displayName"
                       name="displayName"
-                      value={profileForm.displayName}
+                      value={profileForm.fullName}
                       onChange={handleProfileChange}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition"
                       placeholder="Enter your full name"
@@ -327,7 +327,7 @@ export default function Profile() {
                         type="tel"
                         id="phone"
                         name="phone"
-                        value={profileForm.phone}
+                        value={profileForm.phoneNumber}
                         onChange={handleProfileChange}
                         className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition"
                         placeholder="(555) 123-4567"

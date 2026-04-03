@@ -1,7 +1,8 @@
 
+import AppRouter from './AppRouter';
 import AdminRoute from './AdminRoute';
-import { routes } from './routes';
+import AdminRoutes from './AdminRoutes';
 
 export{
-    AdminRoute,routes
+    AppRouter,AdminRoute,AdminRoutes
 }
