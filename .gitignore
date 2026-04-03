@@ -11,8 +11,9 @@ node_modules
 dist
 dist-ssr
 *.local
-
+exoticmart-cf592-firebase-adminsdk-fbsvc-*.json
 # Editor directories and files
+
 .vscode/*
 !.vscode/extensions.json
 .idea
