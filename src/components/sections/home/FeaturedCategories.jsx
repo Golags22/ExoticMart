@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { categoriesItems } from "../../../data/data";
 
 const FeaturedCategories = () => {
@@ -18,9 +19,9 @@ const FeaturedCategories = () => {
         {/* Category grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
           {categoriesItems.map((category) => (
-            <a
+            <Link
               key={category.id}
-              href={category.href}
+              to={category.link}
               className="group relative block overflow-hidden rounded-2xl bg-white shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2"
             >
               {/* Image container with overlay */}
@@ -62,14 +63,14 @@ const FeaturedCategories = () => {
               
               {/* Bottom decorative bar */}
               <div className={`h-1 bg-gradient-to-r ${category.color} transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left`}></div>
-            </a>
+            </Link>
           ))}
         </div>
 
         {/* View all link */}
         <div className="text-center mt-12">
-          <a 
-            href="/all-categories" 
+          <Link 
+            to="/shop" 
             className="inline-flex items-center gap-2 text-red-600 font-medium hover:text-red-700 group"
           >
             <span>View All Categories</span>
@@ -81,7 +82,7 @@ const FeaturedCategories = () => {
             >
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
             </svg>
-          </a>
+          </Link>
         </div>
       </div>
 

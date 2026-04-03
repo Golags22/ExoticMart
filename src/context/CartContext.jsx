@@ -1,246 +1,143 @@
-// src/context/CartContext.jsx
-import React, { createContext, useState, useContext, useEffect } from "react";
-import { useAuth } from "./AuthContext";
+import { createContext, useContext, useEffect, useState } from "react";
 import { db } from "../backend/firebase";
-import { doc, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
-import { toast } from "react-toastify";
+import {
+  doc,
+  setDoc,
+  onSnapshot,
+  serverTimestamp
+} from "firebase/firestore";
+import { useAuth } from "./AuthContext";
 
 const CartContext = createContext();
 
-export const useCart = () => {
-  const context = useContext(CartContext);
-  if (!context) {
-    throw new Error("useCart must be used within a CartProvider");
-  }
-  return context;
-};
+export const useCart = () => useContext(CartContext);
 
-export const CartProvider = ({ children }) => {
-  const { user, userProfile } = useAuth();
-  const [cart, setCart] = useState([]);
-  const [wishlist, setWishlist] = useState([]);
-  const [loading, setLoading] = useState(true);
+export function CartProvider({ children }) {
+  const { user } = useAuth();
+  const [cart, setCart] = useState({ items: [] });
 
-  // Load cart from user profile
+  // 🔄 Derived cart count for navbar
+  const cartCount = (cart?.items || []).reduce(
+    (total, item) => total + item.quantity,
+    0
+  );
+
+  // 🔄 REAL-TIME SYNC with Firestore
   useEffect(() => {
-    if (userProfile) {
-      setCart(userProfile.cart || []);
-      setWishlist(userProfile.wishlist || []);
-    } else {
-      setCart([]);
-      setWishlist([]);
-    }
-    setLoading(false);
-  }, [userProfile]);
+    if (!user) return;
 
-  // Save cart to Firestore
-  const saveCart = async (newCart) => {
-    setCart(newCart);
-    
-    if (user) {
-      try {
-        await updateDoc(doc(db, "users", user.uid), {
-          cart: newCart
-        });
-      } catch (error) {
-        console.error("Error saving cart:", error);
-        toast.error("Error saving cart");
-      }
-    }
-  };
+    const cartRef = doc(db, "carts", user.uid);
 
-  // Add to cart
-  const addToCart = async (product, quantity = 1, options = {}) => {
-    if (!user) {
-      toast.warning("Please login to add items to your cart");
-      return Promise.reject("LOGIN_REQUIRED");
-    }
-
-    try {
-      const newCart = [...cart];
-      const existingItem = newCart.find(item => 
-        item.id === product.id && 
-        JSON.stringify(item.options) === JSON.stringify(options)
-      );
-
-      if (existingItem) {
-        existingItem.quantity += quantity;
+    const unsubscribe = onSnapshot(cartRef, (docSnap) => {
+      if (docSnap.exists()) {
+        setCart(docSnap.data());
       } else {
-        newCart.push({ 
-          id: product.id,
-          name: product.name,
-          brand: product.brand,
-          price: product.price,
-          originalPrice: product.originalPrice,
-          image: product.image,
-          quantity, 
-          options 
-        });
+        setCart({ items: [] });
       }
+    });
 
-      await saveCart(newCart);
-      toast.success(`${product.name} added to cart!`);
-    } catch (error) {
-      console.error("Add to cart error:", error);
-      toast.error("Error adding to cart");
-      throw error;
-    }
-  };
+    return () => unsubscribe();
+  }, [user]);
 
-  // Remove from cart
-  const removeFromCart = async (productId, options = {}) => {
-    if (!user) {
-      toast.warning("Please login to manage your cart");
-      return;
-    }
+  // ➕ ADD TO CART
+  const addToCart = async (product) => {
+    if (!user) return alert("Login first");
 
-    try {
-      const newCart = cart.filter(item => 
-        !(item.id === productId && JSON.stringify(item.options) === JSON.stringify(options))
-      );
-      await saveCart(newCart);
-      toast.success("Item removed from cart");
-    } catch (error) {
-      console.error("Remove from cart error:", error);
-      toast.error("Error removing item");
-    }
-  };
+    const cartRef = doc(db, "carts", user.uid);
+    const existingItem = cart.items.find(
+      (item) => item.productId === product.id
+    );
+console.log("Product received:", product);
+    let updatedItems;
 
-  // Update quantity
-  const updateQuantity = async (productId, quantity, options = {}) => {
-    if (!user) {
-      toast.warning("Please login to update your cart");
-      return;
-    }
-
-    if (quantity < 1) {
-      removeFromCart(productId, options);
-      return;
-    }
-
-    try {
-      const newCart = cart.map(item =>
-        item.id === productId && JSON.stringify(item.options) === JSON.stringify(options)
-          ? { ...item, quantity }
+    if (existingItem) {
+      updatedItems = cart.items.map((item) =>
+        item.productId === product.id
+          ? { ...item, quantity: item.quantity + 1 }
           : item
       );
-      await saveCart(newCart);
-    } catch (error) {
-      console.error("Update quantity error:", error);
-      toast.error("Error updating quantity");
+    } else {
+      updatedItems = [
+        ...cart.items,
+        {
+          productId: product.id,
+          name: product.name,
+          price: product.price,
+          image: product.image,
+          quantity: 1
+        }
+      ];
     }
+
+    await setDoc(
+      cartRef,
+      {
+        customerId: user.uid,
+        items: updatedItems,
+        updatedAt: serverTimestamp()
+      },
+      { merge: true } // 🔹 ensures document exists / merges updates
+    );
   };
 
-  // Clear cart
+  // ➖ REMOVE ITEM
+  const removeFromCart = async (productId) => {
+    if (!user) return;
+
+    const cartRef = doc(db, "carts", user.uid);
+    const updatedItems = cart.items.filter(
+      (item) => item.productId !== productId
+    );
+
+    await setDoc(
+      cartRef,
+      { items: updatedItems, updatedAt: serverTimestamp() },
+      { merge: true }
+    );
+  };
+
+  // 🔄 UPDATE QUANTITY
+  const updateQuantity = async (productId, quantity) => {
+    if (!user) return;
+
+    if (quantity < 1) return; // avoid negative/zero quantity
+
+    const cartRef = doc(db, "carts", user.uid);
+    const updatedItems = cart.items.map((item) =>
+      item.productId === productId ? { ...item, quantity } : item
+    );
+
+    await setDoc(
+      cartRef,
+      { items: updatedItems, updatedAt: serverTimestamp() },
+      { merge: true }
+    );
+  };
+
+  // 🧹 CLEAR CART
   const clearCart = async () => {
     if (!user) return;
-    
-    try {
-      await saveCart([]);
-      toast.success("Cart cleared");
-    } catch (error) {
-      console.error("Clear cart error:", error);
-      toast.error("Error clearing cart");
-    }
-  };
 
-  // Toggle wishlist
-  const toggleWishlist = async (product) => {
-    if (!user) {
-      toast.warning("Please login to add items to your wishlist");
-      return Promise.reject("LOGIN_REQUIRED");
-    }
-
-    try {
-      const exists = wishlist.some(item => item.id === product.id);
-      let newWishlist;
-      
-      if (exists) {
-        newWishlist = wishlist.filter(item => item.id !== product.id);
-        toast.success("Removed from wishlist");
-      } else {
-        newWishlist = [...wishlist, product];
-        toast.success("Added to wishlist");
-      }
-      
-      setWishlist(newWishlist);
-      
-      if (user) {
-        await updateDoc(doc(db, "users", user.uid), {
-          wishlist: newWishlist
-        });
-      }
-    } catch (error) {
-      console.error("Toggle wishlist error:", error);
-      toast.error("Error updating wishlist");
-      throw error;
-    }
-  };
-
-  // Move to cart
-  const moveToCart = async (productId, options = {}) => {
-    if (!user) return;
-    
-    try {
-      const item = wishlist.find(item => 
-        item.id === productId && JSON.stringify(item.options) === JSON.stringify(options)
-      );
-      
-      if (item) {
-        await addToCart(item, 1, options);
-        await toggleWishlist(item);
-      }
-    } catch (error) {
-      console.error("Move to cart error:", error);
-      toast.error("Error moving to cart");
-    }
-  };
-
-  const isInWishlist = (productId) => {
-    return wishlist.some(item => item.id === productId);
-  };
-
-  const getCartTotal = () => {
-    return cart.reduce((total, item) => total + (item.price * item.quantity), 0);
-  };
-
-  const getCartCount = () => {
-    return cart.reduce((count, item) => count + item.quantity, 0);
-  };
-
-  const getCartSubtotal = () => {
-    return cart.reduce((total, item) => total + (item.price * item.quantity), 0);
-  };
-
-  const getCartTax = () => {
-    return getCartSubtotal() * 0.1; // 10% tax
-  };
-
-  const getCartTotalWithTax = () => {
-    return getCartSubtotal() + getCartTax();
-  };
-
-  const value = {
-    cart,
-    wishlist,
-    loading,
-    addToCart,
-    removeFromCart,
-    updateQuantity,
-    clearCart,
-    toggleWishlist,
-    moveToCart,
-    isInWishlist,
-    getCartTotal,
-    getCartCount,
-    getCartSubtotal,
-    getCartTax,
-    getCartTotalWithTax
+    const cartRef = doc(db, "carts", user.uid);
+    await setDoc(
+      cartRef,
+      { items: [], updatedAt: serverTimestamp() },
+      { merge: true }
+    );
   };
 
   return (
-    <CartContext.Provider value={value}>
+    <CartContext.Provider
+      value={{
+        cart,
+        cartCount,
+        addToCart,
+        removeFromCart,
+        updateQuantity,
+        clearCart
+      }}
+    >
       {children}
     </CartContext.Provider>
   );
-};
+}

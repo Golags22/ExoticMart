@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { Star, ShoppingBag, Heart } from "lucide-react";
 import { Link } from "react-router-dom";
-import { products } from "../../../data/data";
-
+import { products } from "../../../data/products";
+import { toast } from "react-toastify";
 const BestSellers = () => {
   const [wishlist, setWishlist] = useState([]);
   const [cart, setCart] = useState([]);
@@ -18,7 +18,7 @@ const BestSellers = () => {
       console.log(`${product.name} added to cart successfully`);
       
       // Optional: Show a toast notification here
-      // toast.success(`${product.name} added to cart!`);
+      toast.success(`${product.name} added to cart!`);
     }
   };
 

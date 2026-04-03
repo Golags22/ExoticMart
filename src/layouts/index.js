@@ -1,6 +1,7 @@
 
 import AdminLayout from './AdminLayout';
-import MainLayout from './Minlayout';
+import MainLayout from './MainLayout';
+
 
 
 export{

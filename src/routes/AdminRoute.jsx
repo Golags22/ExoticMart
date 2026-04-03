@@ -1,26 +1,23 @@
-// components/AdminRoute.jsx
-import React from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 export default function AdminRoute({ children }) {
   const { user, userProfile, loading } = useAuth();
+  const location = useLocation();
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-red-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
-        </div>
-      </div>
-    );
+  // 1️⃣ Wait until Firebase auth finishes loading
+  if (loading) return <div>Loading...</div>;
+
+  // 2️⃣ Redirect to login if not logged in
+  if (!user) {
+    return <Navigate to="/account/admin/auth/login" state={{ from: location }} replace />;
   }
 
-  // Check if user is logged in AND has admin role
-  if (!user || userProfile?.role !== "admin") {
-    return <Navigate to="/admin/login" replace />;
+  // 3️⃣ Redirect to home if logged in but not admin
+  if (!userProfile?.role || userProfile.role !== "admin") {
+    return <Navigate to="/" replace />;
   }
 
+  // 4️⃣ Admin is logged in → render children (AdminLayout + nested pages)
   return children;
 }
