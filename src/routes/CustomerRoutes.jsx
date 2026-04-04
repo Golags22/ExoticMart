@@ -3,9 +3,7 @@ import MainLayout from "../layouts/MainLayout";
 
 import Home from "../pages/Home";
 import Shop from "../components/sections/shop/Shop";
-import Cart from "../pages/cart/Cart";
 import NotFound from "../pages/NotFound";
-
 import Categories from "../pages/Categories";
 import About from "./../pages/About";
 import Contact from "../pages/Contact";
@@ -22,6 +20,7 @@ import Cosmetics from "../components/sections/shop/cosmetics/Cosmetics";
 import Jewelry from "../components/sections/shop/Jewelry";
 import Clothing from "../components/sections/shop/clothing/Clothing";
 import Hair from "../components/sections/shop/hair/Hair";
+import Carts from "../pages/cart/Carts";
 
 const CustomerRoutes = (
   <Route element={<MainLayout />}>
@@ -31,7 +30,7 @@ const CustomerRoutes = (
     <Route path="/shop" element={<Shop />} />
     <Route path="/products" element={<ProductList />} />
     <Route path="/product/:id" element={<ProductDetails />} />
-    <Route path="/cart" element={<Cart />} />
+    <Route path="/cart" element={<Carts />} />
 
     <Route path="/cosmetics" element={<Cosmetics />} />
     <Route path="/jeweries" element={<Jewelry />} />

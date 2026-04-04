@@ -14,7 +14,7 @@ import {
   X
 } from "lucide-react";
 
-export default function Cart() {
+export default function Carts() {
   const { cart, removeFromCart, updateQuantity } = useCart();
   const navigate = useNavigate();
 
