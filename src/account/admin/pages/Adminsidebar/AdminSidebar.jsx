@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import SidebarHeader from "./SidebarHeader";
 import SidebarProfile from "./SidebarProfile";
 import SidebarNav from "./SidebarNav";
-import SidebarFooter from "./SidebarFooter";
+import SidebarsFooter from "./Sidebarsfooter";
 
 export default function AdminSidebar({ collapsed, onToggle }) {
   const [isMobile, setIsMobile] = useState(false);
@@ -34,7 +34,7 @@ export default function AdminSidebar({ collapsed, onToggle }) {
        
         <SidebarNav collapsed={collapsed} />
          {!collapsed && <SidebarProfile />}
-        <SidebarFooter collapsed={collapsed} />
+        <SidebarsFooter collapsed={collapsed} />
       </aside>
     </>
   );

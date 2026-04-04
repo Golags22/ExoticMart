@@ -1,7 +1,7 @@
  import { LogOut } from "lucide-react";
 import { useAuth } from "../../../../context/AuthContext";
 
-export default function SidebarFooter({ collapsed }) {
+export default function SidebarsFooter({ collapsed }) {
   const { logout } = useAuth();
 
   return (
